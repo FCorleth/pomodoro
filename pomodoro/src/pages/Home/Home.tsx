@@ -1,5 +1,8 @@
 import { Play } from "phosphor-react";
 import type { CSSProperties } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as zod from "zod";
 
 const spanStyle: CSSProperties = {
   backgroundColor: "var(--gray-700)",
@@ -73,10 +76,37 @@ const minutesAmountInputStyle: CSSProperties = {
   width: "4rem",
 };
 
+const newCycleFormSchema = zod.object({
+  task: zod.string().min(1, "Informe a tarefa"),
+  minutesAmount: zod
+    .number()
+    .min(1, "O ciclo precisa ser de no mínimo 1 minuto.")
+    .max(60, "O ciclo precisa ser de no máximo 60 minutos."),
+});
+
+type NewCycleFormData = zod.infer<typeof newCycleFormSchema>;
+
 export function Home() {
+  const { register, handleSubmit, formState, reset } = useForm({
+    resolver: zodResolver(newCycleFormSchema),
+    defaultValues: {
+      task: "",
+      minutesAmount: 0,
+    },
+  });
+
+  function onSubmit(data: NewCycleFormData) {
+    console.log(data);
+    reset();
+  }
+
+  const { errors } = formState;
+
+  console.log(errors);
+
   return (
     <div style={divStyle}>
-      <form style={formStyle}>
+      <form style={formStyle} onSubmit={handleSubmit(onSubmit)}>
         <div style={divLabelStyle}>
           <label htmlFor="task">Vou trabalhar em</label>
           <input
@@ -85,6 +115,7 @@ export function Home() {
             placeholder="Dê um nome para o seu projeto"
             style={taskInputStyle}
             list="taskSuggestions"
+            {...register("task")}
           />
           <datalist id="taskSuggestions">
             <option value="Projeto 1" />
@@ -99,9 +130,9 @@ export function Home() {
             id="minutesAmount"
             placeholder="00"
             min={0}
-            max={60}
             step={5}
             style={minutesAmountInputStyle}
+            {...register("minutesAmount", { valueAsNumber: true })}
           />
           <span>minutos.</span>
         </div>
