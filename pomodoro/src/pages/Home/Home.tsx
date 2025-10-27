@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
+import { useState } from "react";
 
 const spanStyle: CSSProperties = {
   backgroundColor: "var(--gray-700)",
@@ -86,7 +87,16 @@ const newCycleFormSchema = zod.object({
 
 type NewCycleFormData = zod.infer<typeof newCycleFormSchema>;
 
+interface Cycle {
+  id: string;
+  task: string;
+  minutesAmount: number;
+}
+
 export function Home() {
+  const [cycles, setCycles] = useState<Cycle[]>([]);
+  const [activeCycleId, setActiveCycle] = useState<string | null>("");
+
   const { register, handleSubmit, formState, reset } = useForm({
     resolver: zodResolver(newCycleFormSchema),
     defaultValues: {
@@ -96,9 +106,19 @@ export function Home() {
   });
 
   function onSubmit(data: NewCycleFormData) {
-    console.log(data);
+    const newCycle: Cycle = {
+      id: String(new Date().getTime()),
+      task: data.task,
+      minutesAmount: data.minutesAmount,
+    };
+
+    setCycles((cycles) => [...cycles, newCycle]);
+    setActiveCycle(newCycle.id);
+
     reset();
   }
+
+  const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
 
   const { errors } = formState;
 
