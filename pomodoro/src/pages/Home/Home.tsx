@@ -1,4 +1,4 @@
-import { Play } from "phosphor-react";
+import { HandPalm, Play } from "phosphor-react";
 import type { CSSProperties } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,6 +56,21 @@ const buttonStyle: CSSProperties = {
   cursor: "pointer",
 };
 
+const cancelButtonStyle: CSSProperties = {
+  width: "100%",
+  border: "none",
+  borderRadius: "8px",
+  padding: "1rem",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "0.5rem",
+  backgroundColor: "var(--red-500)",
+  color: "var(--white)",
+  fontWeight: "bold",
+  cursor: "pointer",
+};
+
 const inputStyle: CSSProperties = {
   backgroundColor: "transparent",
   border: "none",
@@ -93,6 +108,7 @@ interface Cycle {
   task: string;
   minutesAmount: number;
   startDate: Date;
+  interruptedDate?: Date;
 }
 
 export function Home() {
@@ -121,6 +137,18 @@ export function Home() {
     setAmountSecondsPassed(0);
 
     reset();
+  }
+
+  function handleCancelCycle() {
+    setCycles(
+      cycles.map((cycle) => {
+        if (cycle.id === activeCycleId) {
+          return { ...cycle, interruptedDate: new Date() };
+        }
+        return cycle;
+      })
+    );
+    setActiveCycle(null);
   }
 
   const activeCycle = cycles.find((cycle) => cycle.id === activeCycleId);
@@ -169,6 +197,7 @@ export function Home() {
             placeholder="Dê um nome para o seu projeto"
             style={taskInputStyle}
             list="taskSuggestions"
+            disabled={!!activeCycle}
             {...register("task")}
           />
           <datalist id="taskSuggestions">
@@ -185,6 +214,7 @@ export function Home() {
             placeholder="00"
             min={0}
             step={5}
+            disabled={!!activeCycle}
             style={minutesAmountInputStyle}
             {...register("minutesAmount", { valueAsNumber: true })}
           />
@@ -205,10 +235,17 @@ export function Home() {
           <span style={spanStyle}>{seconds[0]}</span>
           <span style={spanStyle}>{seconds[1]}</span>
         </div>
-        <button type="submit" style={buttonStyle}>
-          <Play size={24} />
-          Começar
-        </button>
+        {activeCycle ? (
+          <button style={cancelButtonStyle} onClick={handleCancelCycle}>
+            <HandPalm size={24} />
+            Interromper
+          </button>
+        ) : (
+          <button type="submit" style={buttonStyle}>
+            <Play size={24} />
+            Começar
+          </button>
+        )}
       </form>
     </div>
   );
